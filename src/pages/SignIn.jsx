@@ -22,6 +22,36 @@ export default function SignIn() {
       [e.target.id]: e.target.value,
     });
   };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   try {
+  //     dispatch(signInStart());
+  //     const res = await fetch(`${API_BASE_URL}/api/auth/signin`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(formData),
+  //     });
+  //     const data = await res.json();
+
+  //     console.log("data ===>", data);
+  //     // if (data.success === false) {
+  //     //   dispatch(signInFailure(data.message));
+  //     //   return;
+  //     // }
+
+  //     if (!res.ok) {
+  //       dispatch(signInFailure(data.message || "Sign in failed"));
+  //       return;
+  //     }
+  //     dispatch(signInSuccess(data));
+  //     navigate("/");
+  //   } catch (error) {
+  //     dispatch(signInFailure(error.message));
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -33,22 +63,27 @@ export default function SignIn() {
         },
         body: JSON.stringify(formData),
       });
-      const data = await res.json();
 
-      console.log("data ===>", data);
-      // if (data.success === false) {
-      //   dispatch(signInFailure(data.message));
-      //   return;
-      // }
+      const text = await res.text(); // get raw response
+      let data;
+      try {
+        data = JSON.parse(text); // try to parse JSON
+      } catch (err) {
+        console.error("Not a JSON response from backend:", text);
+        dispatch(signInFailure("Unexpected server response"));
+        return;
+      }
 
-      if (!res.ok) {
+      if (!res.ok || data.success === false) {
         dispatch(signInFailure(data.message || "Sign in failed"));
         return;
       }
+
       dispatch(signInSuccess(data));
       navigate("/");
     } catch (error) {
-      dispatch(signInFailure(error.message));
+      console.error("Fetch error:", error.message);
+      dispatch(signInFailure("Request failed"));
     }
   };
 
