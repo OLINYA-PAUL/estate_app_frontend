@@ -7,10 +7,13 @@ import {
   signInFailure,
 } from "../redux/user/userSlice";
 import OAuth from "../components/OAuth";
+import { API_BASE_URL } from "../../config/config";
 
 export default function SignIn() {
   const [formData, setFormData] = useState({});
   const { loading, error } = useSelector((state) => state.user);
+
+  console.log("sign in error ===>", error, loading);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const handleChange = (e) => {
@@ -23,7 +26,7 @@ export default function SignIn() {
     e.preventDefault();
     try {
       dispatch(signInStart());
-      const res = await fetch("/api/auth/signin", {
+      const res = await fetch(`${API_BASE_URL}/api/auth/signin`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,8 +34,15 @@ export default function SignIn() {
         body: JSON.stringify(formData),
       });
       const data = await res.json();
-      if (data.success === false) {
-        dispatch(signInFailure(data.message));
+
+      console.log("data ===>", data);
+      // if (data.success === false) {
+      //   dispatch(signInFailure(data.message));
+      //   return;
+      // }
+
+      if (!res.ok) {
+        dispatch(signInFailure(data.message || "Sign in failed"));
         return;
       }
       dispatch(signInSuccess(data));
@@ -41,6 +51,7 @@ export default function SignIn() {
       dispatch(signInFailure(error.message));
     }
   };
+
   return (
     <div className="p-3 max-w-lg mx-auto mt-40">
       <h1 className="text-3xl text-center font-semibold my-7">Sign In</h1>
@@ -61,7 +72,7 @@ export default function SignIn() {
         />
 
         <button
-          disabled={loading}
+          // disabled={loading}
           className="bg-slate-700 text-white p-3 rounded-lg uppercase hover:opacity-95 disabled:opacity-80"
         >
           {loading ? "Loading..." : "Sign In"}
